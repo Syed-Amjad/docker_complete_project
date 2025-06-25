@@ -1,8 +1,13 @@
 from flask import Flask, render_template
+from prometheus_flask_exporter import PrometheusMetrics
 import redis
-import os
 
 app = Flask(__name__)
+
+# Initialize Prometheus metrics (this automatically adds /metrics)
+metrics = PrometheusMetrics(app)
+
+# Redis setup
 cache = redis.Redis(host='redis', port=6379)
 
 @app.route('/')
@@ -10,8 +15,8 @@ def index():
     count = cache.incr('hits')
     return render_template('index.html', count=count)
 
-@app.route('/metrics')
-def metrics():
+@app.route('/custom_metrics')
+def custom_metrics():
     count = cache.get('hits') or 0
     return f"hits_total {count.decode() if isinstance(count, bytes) else count}"
 
